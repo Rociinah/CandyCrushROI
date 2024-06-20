@@ -10,7 +10,7 @@ ANCHO_PANTA = 240
 ALTO_PANTA = 500
 CELDA = 60
 MARGEN = 20  # Margen entre el texto y el borde de la pantalla
-COLOR_FONDI = (205,100,125)
+COLOR_FONDI = (205, 100, 125)
 COLOR_FONDO = (0, 0, 0)  # Negro
 COLOR_FONDO_TABLERO = (125, 125, 125)  # Gris para el tablero
 COLORES = ["rojo", "verde", "azul", "amarillo", "naranja", "morado"]  # Colores de los dulces
@@ -30,13 +30,12 @@ imagenes_caramelos = {
 
 # Configuración de fuentes
 fuente_titulo = pygame.font.SysFont("Georgia", 64)
-
 fuente_texto = pygame.font.SysFont("Times New Roman", 28)
 color_texto = (0, 0, 0)
 
 class Tablero:
-    def __init__(self, nivel = 1):
-        self.nivel =nivel
+    def __init__(self, nivel=1):
+        self.nivel = nivel  # Initialize nivel here
         self.definir_forma_tablero()
         self.dulces = [[random.choice(COLORES) for _ in range(ANCHO // CELDA)] for _ in range(ALTO // CELDA)]
         self.dulce_seleccionado = None
@@ -47,19 +46,19 @@ class Tablero:
         self.generar_objetivos()
 
     def definir_forma_tablero(self):
-        #Agregar mas??
         formas = {
-            1: (ANCHO_PANTALLA // CELDA, ALTO_PANTALLA // CELDA),  # Nivel 1: Tablero completo
-            2: (5, ALTO_PANTALLA // CELDA),  # Nivel 2: Rectángulo vertical
-            3: (10, (ALTO_PANTALLA // CELDA) // 2),  # Nivel 3: Rectángulo horizontal
+            1: (ANCHO // CELDA, ALTO // CELDA),  # Nivel 1: Tablero completo
+            2: (5, ALTO// CELDA),  # Nivel 2: Rectángulo vertical
+            3: (10, (ALTO // CELDA) // 2),  # Nivel 3: Rectángulo horizontal
             4: (6, 6),  # Nivel 4: Cuadrado pequeño
             5: (8, 8),  # Nivel 5: Cuadrado mediano
         }
-        self.ancho_celdas, self.alto_celdas = formas.get(self.nivel, (ANCHO_PANTALLA // CELDA ,ALTO_PANTALLA // CELDA))
+        self.ancho_celdas, self.alto_celdas = formas.get(self.nivel, (ANCHO_PANTALLA // CELDA, ALTO_PANTALLA // CELDA))
 
     def intercambiar_dulces(self, x1, y1, x2, y2):
-        self.dulces[y1][x1], self.dulces[y2][x2] = self.dulces[y2][x2], self.dulces[y1][x1]
-        self.movimientos_restantes -= 1
+        if 0 <= x1 < self.ancho_celdas and 0 <= y1 < self.alto_celdas and 0 <= x2 < self.ancho_celdas and 0 <= y2 < self.alto_celdas:
+            self.dulces[y1][x1], self.dulces[y2][x2] = self.dulces[y2][x2], self.dulces[y1][x1]
+            self.movimientos_restantes -= 1
 
     def hay_coincidencias(self):
         coincidencias = False
@@ -81,7 +80,7 @@ class Tablero:
         # Verificar horizontal hacia la derecha
         group = [(x, y)]
         for i in range(1, 6):  # Acepta hasta 5
-            if x + i < self.ancho_celdas and y < len(self.dulces) and self.dulces[y][x + i] == color:
+            if x + i < self.ancho_celdas and self.dulces[y][x + i] == color:
                 group.append((x + i, y))
             else:
                 break
@@ -91,7 +90,7 @@ class Tablero:
         # Verificar horizontal hacia la izquierda
         group = [(x, y)]
         for i in range(1, 6):  # Acepta hasta 5
-            if x - i >= 0 and y < len(self.dulces) and self.dulces[y][x - i] == color:
+            if x - i >= 0 and self.dulces[y][x - i] == color:
                 group.append((x - i, y))
             else:
                 break
@@ -101,7 +100,7 @@ class Tablero:
         # Verificar vertical hacia abajo
         group = [(x, y)]
         for i in range(1, 6):  # Acepta hasta 5
-            if y + i < len(self.dulces) and x < len(self.dulces[y + i]) and self.dulces[y + i][x] == color:
+            if y + i < self.alto_celdas and self.dulces[y + i][x] == color:
                 group.append((x, y + i))
             else:
                 break
@@ -111,7 +110,7 @@ class Tablero:
         # Verificar vertical hacia arriba
         group = [(x, y)]
         for i in range(1, 6):  # Acepta hasta 5
-            if y - i >= 0 and x < len(self.dulces[y - i]) and self.dulces[y - i][x] == color:
+            if y - i >= 0 and self.dulces[y - i][x] == color:
                 group.append((x, y - i))
             else:
                 break
@@ -130,11 +129,8 @@ class Tablero:
             coincidentes_temp = [(x, y)]
             for dx, dy in pattern:
                 cx, cy = x + dx, y + dy
-                if 0 <= cx < self.ancho_celdas and 0 <= cy < self.alto_celdas:
-                    if self.dulces[cy][cx] == color:
-                        coincidentes_temp.append((cx, cy))
-                    else:
-                        break
+                if 0 <= cx < self.ancho_celdas and 0 <= cy < self.alto_celdas and self.dulces[cy][cx] == color:
+                    coincidentes_temp.append((cx, cy))
                 else:
                     break
             if len(coincidentes_temp) >= 3:
@@ -152,20 +148,15 @@ class Tablero:
             coincidentes_temp = [(x, y)]
             for dx, dy in pattern:
                 cx, cy = x + dx, y + dy
-                if 0 <= cx < self.ancho_celdas and 0 <= cy < self.alto_celdas:
-                    if self.dulces[cy][cx] == color:
-                        coincidentes_temp.append((cx, cy))
-                    else:
-                        break
+                if 0 <= cx < self.ancho_celdas and 0 <= cy < self.alto_celdas and self.dulces[cy][cx] == color:
+                    coincidentes_temp.append((cx, cy))
                 else:
                     break
             if len(coincidentes_temp) >= 3:
                 coincidencias.extend(coincidentes_temp)
 
-
         # Eliminar duplicados
         coincidencias = list(set(coincidencias))
-
 
         if len(coincidencias) >= 3:
             for cx, cy in coincidencias:
@@ -179,101 +170,105 @@ class Tablero:
         return False
 
     def generar_objetivos(self):
-        colores_disponibles = COLORES[:]
-        random.shuffle(colores_disponibles)
-        num_objetivos = min(2 + self.nivel, len(colores_disponibles))
+        self.objetivos = {color: random.randint(3, 5) + 2 * self.nivel for color in random.sample(COLORES, k=3)}
+        self.cumplido = {color: 0 for color in self.objetivos}
 
-        self.objetivos = {}
-        self.cumplido = {}
+    def verificar_objetivo(self):
+        return all(self.cumplido[color] >= self.objetivos[color] for color in self.objetivos)
 
-        for color in colores_disponibles[:num_objetivos]:
-            cantidad = random.randint(5 * self.nivel, 20 * self.nivel)
-            self.objetivos[color] = cantidad
-            self.cumplido[color] = 0
-
-    def eliminar_coincidencias(self):
-        for y in range(ALTO // CELDA):
-            for x in range(ANCHO // CELDA):
-                self.verificar_coincidencia(x, y)
-
-    def eliminar_dulce(self, posicion):
-        fila, columna = posicion
-        dulce = self.dulces[fila][columna]
-        self.dulces[fila][columna] = random.choice(COLORES)
-        self.puntaje += 10
-        if dulce in self.cumplido:
-            self.cumplido[dulce] += 1
-
-    def actualizar_tablero(self):
-        for y in range(self.alto_celdas - 1, -1, -1):
-            for x in range(self.ancho_celdas):
-                if self.dulces[y][x] is None:
-                    for k in range(y - 1, -1, -1):
-                        if self.dulces[k][x] is not None:
-                            self.dulces[y][x], self.dulces[k][x] = self.dulces[k][x], None
-                            break
+    def rellenar_dulces(self):
         for y in range(self.alto_celdas):
             for x in range(self.ancho_celdas):
                 if self.dulces[y][x] is None:
                     self.dulces[y][x] = random.choice(COLORES)
-
-    def cambiar_forma_tablero(self,nuevo_nivel):
-        self.nivel = nuevo_nivel
-        self.definir_forma_tablero()
-        self.dulces = [[random.choice(COLORES) for _ in range(self.ancho_celdas)] for _ in range(self.alto_celdas)]
-        self.movimientos_restantes = random.randint(5 + 5 * self.nivel, 10 + 5 * self.nivel)
-        self.generar_objetivos()
-        self.puntaje = 0               
-
-    def rellenar_tablero(self):
-        for x in range(self.ancho_celdas// CELDA):
-            huecos = 0
-            for y in range(self.alto_celdas // CELDA - 1, -1, -1):
-                if self.dulces[y][x] is None:
-                    huecos += 1
-                elif huecos > 0:
-                     # Mover los dulces hacia abajo lentamente
-                    for i in range(1, huecos + 1):
-                        self.dulces[y + i][x] = self.dulces[y + i - 1][x]
-                    self.dulces[y][x] = None
-            for y in range(huecos):
-                self.dulces[y][x] = random.choice(COLORES)
-
-    def objetivos_cumplidos(self):
-        for color, cantidad in self.objetivos.items():
-            if self.cumplido[color] < cantidad:
-                return False
-        return True
 
     def detectar_clic(self, pos):
         if self.dulce_seleccionado is not None:
             x, y = pos
             columna = (x - (ANCHO_PANTALLA - ANCHO - MARGEN)) // CELDA
             fila = (y - (ALTO_PANTALLA - ALTO - MARGEN)) // CELDA
-            dx, dy = self.dulce_seleccionado
-            if abs(columna - dx) + abs(fila - dy) == 1:
-                self.intercambiar_dulces(columna, fila, dx, dy)
-                self.dulce_seleccionado = None
-                while self.hay_coincidencias():
-                    self.eliminar_coincidencias()
-                    self.rellenar_tablero()
+            if 0 <= columna < self.ancho_celdas and 0 <= fila < self.alto_celdas:
+                dx, dy = self.dulce_seleccionado
+                if abs(columna - dx) + abs(fila - dy) == 1:
+                    self.intercambiar_dulces(dx, dy, columna, fila)
+                    self.dulce_seleccionado = None
+                    while self.hay_coincidencias():
+                        self.eliminar_coincidencias()
+                        self.rellenar_tablero()
+                else:
+                    self.dulce_seleccionado = (columna, fila)
         else:
             x, y = pos
             columna = (x - (ANCHO_PANTALLA - ANCHO - MARGEN)) // CELDA
             fila = (y - (ALTO_PANTALLA - ALTO - MARGEN)) // CELDA
             self.dulce_seleccionado = (columna, fila)
 
+    def eliminar_coincidencias(self):
+        for y in range(self.alto_celdas):
+            for x in range(self.ancho_celdas):
+                self.verificar_coincidencia(x, y)
+
+    def rellenar_tablero(self):
+        for x in range(self.ancho_celdas):
+            huecos = 0
+            for y in range(self.alto_celdas - 1, -1, -1):
+                if self.dulces[y][x] is None:
+                    huecos += 1
+                elif huecos > 0:
+                    for i in range(1, huecos + 1):
+                        self.dulces[y + i][x] = self.dulces[y + i - 1][x]
+                    self.dulces[y][x] = None
+            for y in range(huecos):
+                self.dulces[y][x] = random.choice(COLORES)
+
+    def mostrar_mensaje(self, pantalla, mensaje):
+        # Dibujar un rectángulo gris para el fondo del mensaje
+        rectangulo_mensaje = pygame.Rect(ANCHO_PANTALLA // 4, ALTO_PANTALLA // 4 , ANCHO_PANTALLA // 2, ALTO_PANTALLA // 2 )
+        pygame.draw.rect(pantalla, COLOR_FONDI, rectangulo_mensaje)
+
+        # Dibujar el texto del mensaje
+        texto_mensaje = fuente_titulo.render(mensaje, True, color_texto)
+        rectangulo_texto = texto_mensaje.get_rect(center=rectangulo_mensaje.center)
+        pantalla.blit(texto_mensaje, rectangulo_texto)
+
+        # Mostrar instrucción para continuar
+        texto_instruccion = fuente_texto.render("Haz clic para continuar", True, color_texto)
+        rectangulo_instruccion = texto_instruccion.get_rect(center=(rectangulo_mensaje.centerx, rectangulo_mensaje.centery + 80))
+        pantalla.blit(texto_instruccion, rectangulo_instruccion)
+
+    def actualizar(self):
+        while self.hay_coincidencias():
+            self.eliminar_coincidencias()
+            self.rellenar_tablero()
+
+    def reset_puntaje_movimientos(self):
+        self.puntaje = 0
+        self.movimientos_restantes = random.randint(25, 40)
+
     def dibujar(self, pantalla):
+        # Dibujar el fondo del tablero
+        pygame.draw.rect(pantalla, COLOR_FONDO_TABLERO, (ANCHO_PANTALLA - ANCHO - MARGEN, ALTO_PANTALLA - ALTO - MARGEN, ANCHO, ALTO))
+    
+        # Coordenadas del tablero en la pantalla
+        tablero_x = ANCHO_PANTALLA - ANCHO - MARGEN
+        tablero_y = ALTO_PANTALLA - ALTO - MARGEN
+
+        # Dibujar los dulces
         for y in range(self.alto_celdas):
             for x in range(self.ancho_celdas):
                 color = self.dulces[y][x]
-                if color:
-                    imagen = imagenes_caramelos[color]
-                    pantalla.blit(imagen, (x * CELDA, y * CELDA))
-                pygame.draw.rect(pantalla, COLOR_FONDO_TABLERO, (x * CELDA, y * CELDA, CELDA, CELDA), 1)
-    
-    def mostrar_info(self, pantalla):
+                if color is not None:
+                    pantalla.blit(imagenes_caramelos[color], (tablero_x + x * CELDA, tablero_y + y * CELDA))
+                # Dibujar borde de las celdas
+                pygame.draw.rect(pantalla, COLOR_FONDO_TABLERO, pygame.Rect(tablero_x + x * CELDA, tablero_y + y * CELDA, CELDA, CELDA), 1)
 
+        # Resaltar caramelo seleccionado
+        if self.dulce_seleccionado:
+            x, y = self.dulce_seleccionado
+            pygame.draw.rect(pantalla, (255, 255, 0), pygame.Rect(tablero_x + x * CELDA, tablero_y + y * CELDA, CELDA, CELDA), 3)
+
+
+        # Dibujar información
         rectangulo_info = pygame.Rect(MARGEN, MARGEN + 160, ANCHO_PANTA, ALTO_PANTA)
         pantalla.fill(COLOR_FONDI, rectangulo_info)
 
@@ -309,35 +304,16 @@ class Tablero:
         pygame.draw.rect(pantalla, (125, 125, 125), (MARGEN + 15, MARGEN + 190, barra_largo, 20), 2)
         pygame.draw.rect(pantalla, (255, 255, 255), (MARGEN + 15, MARGEN + 190, barra_largo * progreso_nivel/2, 18))
 
-        # Resaltar caramelo seleccionado
-        if self.dulce_seleccionado:
-            x, y = self.dulce_seleccionado
-            pygame.draw.rect(pantalla, (255, 255, 0), (ANCHO_PANTALLA - ANCHO - MARGEN + x * CELDA, ALTO_PANTALLA - ALTO - MARGEN + y * CELDA, CELDA, CELDA), 3)
-       
-    
-    def mostrar_mensaje(self, pantalla, mensaje):
-        # Dibujar un rectángulo gris para el fondo del mensaje
-        rectangulo_mensaje = pygame.Rect(ANCHO_PANTALLA // 4, ALTO_PANTALLA // 4 , ANCHO_PANTALLA // 2, ALTO_PANTALLA // 2 )
-        pygame.draw.rect(pantalla, COLOR_FONDI, rectangulo_mensaje)
-
-        # Dibujar el texto del mensaje
-        texto_mensaje = fuente_titulo.render(mensaje, True, color_texto)
-        rectangulo_texto = texto_mensaje.get_rect(center=rectangulo_mensaje.center)
-        pantalla.blit(texto_mensaje, rectangulo_texto)
-
-        # Mostrar instrucción para continuar
-        texto_instruccion = fuente_texto.render("Haz clic para continuar", True, color_texto)
-        rectangulo_instruccion = texto_instruccion.get_rect(center=(rectangulo_mensaje.centerx, rectangulo_mensaje.centery + 80))
-        pantalla.blit(texto_instruccion, rectangulo_instruccion)
-
-    def actualizar(self):
-        while self.hay_coincidencias():
-            self.eliminar_coincidencias()
-            self.rellenar_tablero()
-
-    def reset_puntaje_movimientos(self):
+    def avanzar_nivel(self):
+        self.nivel += 1
+        self.definir_forma_tablero()
+        self.dulces = [[random.choice(COLORES) for _ in range(self.ancho_celdas)] for _ in range(self.alto_celdas)]
+        self.movimientos_restantes = random.randint(5 + 5 * self.nivel, 10 + 5 * self.nivel)
+        self.generar_objetivos()
+        self.actualizar()
         self.puntaje = 0
-        self.movimientos_restantes = random.randint(25, 40)
+        for color in COLORES:
+            self.cumplido[color] = 0
 
 def main():
     pygame.init()
@@ -345,55 +321,44 @@ def main():
     pygame.display.set_caption("Candy Crush RI")
     imagen_fondo = pygame.image.load(r"C:/Users/rocio/Juego/Imagenes/fondo_inte.jpg").convert()
     imagen_fondo = pygame.transform.scale(imagen_fondo, (ANCHO_PANTALLA, ALTO_PANTALLA))
-    nivel_actual = 1
-    tablero = Tablero(nivel = nivel_actual)
-    reloj = pygame.time.Clock()
+
+    tablero = Tablero(nivel=1)  # Empezar con nivel 1
     tablero.actualizar()
     for color in COLORES:
         tablero.cumplido[color] = 0
-    tablero.puntaje = 0
-    terminado = False
+    tablero.puntaje = 0   
+    corriendo = True
     juego_terminado = False
 
-    
-    while not terminado:
+    while corriendo:
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
-                terminado = True
+                corriendo = False
             elif evento.type == pygame.MOUSEBUTTONDOWN:
                 if juego_terminado:
-                    # Reiniciar el juego al hacer clic después de ganar o perder
-                    tablero = Tablero()
-                    tablero.nivel += 1
-                    tablero.actualizar()
-                    for color in COLORES:
-                            tablero.cumplido[color] = 0
-                    tablero.puntaje = 0
+                    tablero=Tablero()           
                     juego_terminado = False
                 else:
                     tablero.detectar_clic(pygame.mouse.get_pos())
 
-        # Dibujar fondo inicial en negro
-        pantalla.fill(COLOR_FONDO)
-        
+        pantalla.fill(COLOR_FONDO)         
         # Dibujar imagen de fondo después del fondo inicial
         pantalla.blit(imagen_fondo, (0, 0))
-
         tablero.dibujar(pantalla)
-        tablero.mostrar_info(pantalla)
+        pygame.display.update()
 
         if tablero.movimientos_restantes == 0:
             tablero.mostrar_mensaje(pantalla, "Has Perdido")
             juego_terminado = True
-        elif all(tablero.cumplido[color] >= cantidad for color, cantidad in tablero.objetivos.items()):
+        elif tablero.verificar_objetivo():
+            tablero.avanzar_nivel()
             tablero.mostrar_mensaje(pantalla, "Has Ganado")
-            juego_terminado = True
 
-        pygame.display.flip()
-        reloj.tick(30)  # FPS (30 frames por segundo)
+        pygame.display.update()
+        pygame.time.wait(100)
 
     pygame.quit()
 
-# Ejecutar el juego
 if __name__ == "__main__":
     main()
+
