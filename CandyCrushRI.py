@@ -34,26 +34,34 @@ fuente_texto = pygame.font.SysFont("Times New Roman", 28)
 color_texto = (0, 0, 0)
 
 class Tablero:
-    def __init__(self, nivel=1):
+    def __init__(self, nivel=1, objetivos=None, movimientos_restantes=None):
         self.nivel = nivel  # Initialize nivel here
         self.definir_forma_tablero()
-        self.dulces = [[random.choice(COLORES) for _ in range(ANCHO // CELDA)] for _ in range(ALTO // CELDA)]
+        self.dulces = [[random.choice(COLORES) for _ in range(self.ancho_celdas)] for _ in range(self.alto_celdas)]
         self.dulce_seleccionado = None
-        self.movimientos_restantes = random.randint(5 + 5 * self.nivel, 10 + 5 * self.nivel)
-        self.objetivos = {}
+        self.movimientos_restantes = movimientos_restantes if movimientos_restantes is not None else random.randint(5 + 5 * self.nivel, 10 + 5 * self.nivel)
+        self.objetivos = objetivos if objetivos is not None else {}
         self.cumplido = {}
         self.puntaje = 0
-        self.generar_objetivos()
+        if not objetivos:
+            self.generar_objetivos()
 
     def definir_forma_tablero(self):
         formas = {
             1: (ANCHO // CELDA, ALTO // CELDA),  # Nivel 1: Tablero completo
-            2: (5, ALTO// CELDA),  # Nivel 2: Rectángulo vertical
-            3: (10, (ALTO // CELDA) // 2),  # Nivel 3: Rectángulo horizontal
-            4: (6, 6),  # Nivel 4: Cuadrado pequeño
-            5: (8, 8),  # Nivel 5: Cuadrado mediano
+            2: (6, ALTO// CELDA),  # Nivel 2: Rectángulo vertical
+            3: (13, (ALTO // CELDA) // 2),  # Nivel 3: Rectángulo horizontal
+            4: (8, 8),  # Nivel 4: Cuadrado pequeño
+            5: (11, 11),  # Nivel 5: Cuadrado mediano
+            6: (5,5)
         }
-        self.ancho_celdas, self.alto_celdas = formas.get(self.nivel, (ANCHO_PANTALLA // CELDA, ALTO_PANTALLA // CELDA))
+        self.ancho_celdas, self.alto_celdas = formas.get(self.nivel, (ANCHO // CELDA, ALTO // CELDA))
+        # Ajusta los valores a continuación para mover el tablero
+        desplazamiento_derecha = 120  # Aumenta este valor para mover el tablero a la derecha
+        desplazamiento_abajo = 80  # Aumenta este valor para mover el tablero hacia abajo
+
+        self.tablero_x = (ANCHO_PANTALLA - self.ancho_celdas * CELDA) // 2 + desplazamiento_derecha
+        self.tablero_y = (ALTO_PANTALLA - self.alto_celdas * CELDA) // 2 + desplazamiento_abajo
 
     def intercambiar_dulces(self, x1, y1, x2, y2):
         if 0 <= x1 < self.ancho_celdas and 0 <= y1 < self.alto_celdas and 0 <= x2 < self.ancho_celdas and 0 <= y2 < self.alto_celdas:
@@ -174,7 +182,7 @@ class Tablero:
         self.cumplido = {color: 0 for color in self.objetivos}
 
     def verificar_objetivo(self):
-        return all(self.cumplido[color] >= self.objetivos[color] for color in self.objetivos)
+        return all(self.cumplido.get(color, 0) >= self.objetivos[color] for color in self.objetivos)
 
     def rellenar_dulces(self):
         for y in range(self.alto_celdas):
@@ -185,8 +193,8 @@ class Tablero:
     def detectar_clic(self, pos):
         if self.dulce_seleccionado is not None:
             x, y = pos
-            columna = (x - (ANCHO_PANTALLA - ANCHO - MARGEN)) // CELDA
-            fila = (y - (ALTO_PANTALLA - ALTO - MARGEN)) // CELDA
+            columna = (x - self.tablero_x) // CELDA
+            fila = (y - self.tablero_y) // CELDA
             if 0 <= columna < self.ancho_celdas and 0 <= fila < self.alto_celdas:
                 dx, dy = self.dulce_seleccionado
                 if abs(columna - dx) + abs(fila - dy) == 1:
@@ -199,8 +207,8 @@ class Tablero:
                     self.dulce_seleccionado = (columna, fila)
         else:
             x, y = pos
-            columna = (x - (ANCHO_PANTALLA - ANCHO - MARGEN)) // CELDA
-            fila = (y - (ALTO_PANTALLA - ALTO - MARGEN)) // CELDA
+            columna = (x - self.tablero_x) // CELDA
+            fila = (y - self.tablero_y) // CELDA
             self.dulce_seleccionado = (columna, fila)
 
     def eliminar_coincidencias(self):
@@ -241,28 +249,22 @@ class Tablero:
             self.eliminar_coincidencias()
             self.rellenar_tablero()
 
-    def reset_puntaje_movimientos(self):
-        self.puntaje = 0
-        self.movimientos_restantes = random.randint(25, 40)
-
     def dibujar(self, pantalla):
-## arreglar los limites del tablero por nivel
-
         # Dibujar el fondo del tablero
-        pygame.draw.rect(pantalla, COLOR_FONDO_TABLERO, (ANCHO_PANTALLA - ANCHO - MARGEN, ALTO_PANTALLA - ALTO - MARGEN, ANCHO, ALTO))
-    
-        # Coordenadas del tablero en la pantalla
-        tablero_x = ANCHO_PANTALLA - ANCHO - MARGEN
-        tablero_y = ALTO_PANTALLA - ALTO - MARGEN
+        #pygame.draw.rect(pantalla, COLOR_FONDO_TABLERO, (ANCHO_PANTALLA - ANCHO - MARGEN, ALTO_PANTALLA - ALTO - MARGEN, ANCHO, ALTO))
+        
+        # Dibujar el fondo del tablero
+        tablero_x = self.tablero_x
+        tablero_y = self.tablero_y
 
         # Dibujar los dulces
         for y in range(self.alto_celdas):
             for x in range(self.ancho_celdas):
                 color = self.dulces[y][x]
+                pygame.draw.rect(pantalla, COLOR_FONDO_TABLERO, (tablero_x + x * CELDA, tablero_y + y * CELDA, CELDA, CELDA))
                 if color is not None:
                     pantalla.blit(imagenes_caramelos[color], (tablero_x + x * CELDA, tablero_y + y * CELDA))
-                # Dibujar borde de las celdas
-                pygame.draw.rect(pantalla, COLOR_FONDO_TABLERO, pygame.Rect(tablero_x + x * CELDA, tablero_y + y * CELDA, CELDA, CELDA), 1)
+
 
         # Resaltar caramelo seleccionado
         if self.dulce_seleccionado:
@@ -289,8 +291,8 @@ class Tablero:
 
         y_offset = MARGEN + 370
         for color, cantidad in self.objetivos.items():
-            color_texto_objetivo = (0, 200, 15) if self.cumplido[color] >= cantidad else (255,255,255)
-            texto_objetivo = fuente_texto.render(f"{color.capitalize()}: {self.cumplido.get(color, 0)} / {cantidad}", True, color_texto_objetivo)
+            color_texto_objetivo = (0, 200, 15) if self.cumplido.get(color, 0) >= cantidad else (255,255,255)
+            texto_objetivo = fuente_texto.render(f"{color}: {self.cumplido.get(color, 0)}/{cantidad}", True, color_texto_objetivo)
             pantalla.blit(texto_objetivo, (MARGEN + 45, y_offset))
             y_offset += 40
 
@@ -304,7 +306,7 @@ class Tablero:
 
         barra_largo = 200
         pygame.draw.rect(pantalla, (125, 125, 125), (MARGEN + 15, MARGEN + 190, barra_largo, 20), 2)
-        pygame.draw.rect(pantalla, (255, 255, 255), (MARGEN + 15, MARGEN + 190, barra_largo * progreso_nivel/2, 18))
+        pygame.draw.rect(pantalla, (255, 255, 255), (MARGEN + 15, MARGEN + 190, (barra_largo * progreso_nivel)//2, 18))
 
     def avanzar_nivel(self):
         self.nivel += 1
@@ -338,25 +340,35 @@ def main():
                 corriendo = False
             elif evento.type == pygame.MOUSEBUTTONDOWN:
                 if juego_terminado:
-                    tablero=Tablero()           
-                    juego_terminado = False
+                    if tablero.verificar_objetivo():
+                        tablero.avanzar_nivel()
+                        juego_terminado = False
+                    else:
+                        # Reiniciar el tablero con el estado guardado
+                        tablero = Tablero(nivel=nivel_perdido, objetivos=objetivos_perdidos, movimientos_restantes=movimientos_restantes_perdidos)
+                        juego_terminado = False
                 else:
                     tablero.detectar_clic(pygame.mouse.get_pos())
 
-        pantalla.fill(COLOR_FONDO)         
+        pantalla.fill(COLOR_FONDO)
         # Dibujar imagen de fondo después del fondo inicial
         pantalla.blit(imagen_fondo, (0, 0))
         tablero.dibujar(pantalla)
         pygame.display.update()
 
+
         if tablero.movimientos_restantes == 0:
             tablero.mostrar_mensaje(pantalla, "Has Perdido")
+            nivel_perdido = tablero.nivel
+            objetivos_perdidos = tablero.objetivos
+            movimientos_restantes_perdidos = random.randint(5 + 5 * tablero.nivel, 10 + 5 * tablero.nivel)
+            pygame.display.update()
             juego_terminado = True
         elif tablero.verificar_objetivo():
-            tablero.avanzar_nivel()
             tablero.mostrar_mensaje(pantalla, "Has Ganado")
+            pygame.display.update()
+            juego_terminado = True
 
-        pygame.display.update()
         pygame.time.wait(100)
 
     pygame.quit()
