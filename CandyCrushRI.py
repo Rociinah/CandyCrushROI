@@ -15,7 +15,6 @@ COLOR_FONDO = (0, 0, 0)  # Negro
 COLOR_FONDO_TABLERO = (125, 125, 125)  # Gris para el tablero
 COLORES = ["rojo", "verde", "azul", "amarillo", "naranja", "morado"]  # Colores de los dulces
 
-# Inicialización de Pygame
 pygame.init()
 
 # Carga de imágenes
